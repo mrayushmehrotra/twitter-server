@@ -1,0 +1,19 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "node build/index",
+    "dev": "npx tsc-watch --onSuccess \"npm start\""
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "@apollo/server": "^4.11.3",
+    "body-parser": "^1.20.3",
+    "express": "^4.21.2",
+    "graphql": "^16.10.0"
+  }
+}
