@@ -65,7 +65,7 @@ export const resolvers = {
         const userToken = JWTService.generateTokenForUser(userInDb);
 
         console.log(data);
-        return "ok";
+        return userToken;
       } catch (error) {
         console.error("Error verifying Google token:", error);
         throw new Error("Failed to verify Google token.");
