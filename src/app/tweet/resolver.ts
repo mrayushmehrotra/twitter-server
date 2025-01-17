@@ -1,3 +1,4 @@
+import { query } from "express";
 import { prismaClient } from "../../clients/db";
 import { GraphqlContext } from "../../interfaces";
 import { Tweet } from "@prisma/client";
@@ -5,6 +6,13 @@ interface CreateTweetPayload {
   content: string;
   imageURL?: string;
 }
+
+const queries = {
+  getAllTweets: () =>
+    prismaClient.tweet.findMany({
+      orderBy: { createdAt: "desc" },
+    }),
+};
 
 const mutations = {
   createTweet: async (
@@ -48,4 +56,4 @@ const extraResolvers = {
   },
 };
 
-export const resolvers = { mutations, extraResolvers };
+export const resolvers = { mutations, extraResolvers, queries };
