@@ -24,7 +24,7 @@ interface GoogleTokenResult {
 }
 
 export const resolvers = {
-  Query: {
+  query: {
     verifyGoogleToken: async (parent: any, { token }: { token: string }) => {
       if (!token) {
         throw new Error("Token is required.");
