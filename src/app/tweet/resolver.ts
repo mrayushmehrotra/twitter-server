@@ -1,7 +1,7 @@
-import { query } from "express";
 import { prismaClient } from "../../clients/db";
 import { GraphqlContext } from "../../interfaces";
 import { Tweet } from "@prisma/client";
+
 interface CreateTweetPayload {
   content: string;
   imageURL?: string;
@@ -21,6 +21,7 @@ const mutations = {
     ctx: GraphqlContext,
   ) => {
     if (!ctx.user) throw new Error("you are not authenticated");
+    console.log(payload);
     try {
       const tweet = await prismaClient.tweet.create({
         data: {
