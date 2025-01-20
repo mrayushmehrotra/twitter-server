@@ -21,7 +21,7 @@ const mutations = {
     ctx: GraphqlContext,
   ) => {
     if (!ctx.user) throw new Error("you are not authenticated");
-    console.log(payload);
+
     try {
       const tweet = await prismaClient.tweet.create({
         data: {
