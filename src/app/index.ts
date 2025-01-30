@@ -16,20 +16,20 @@ export async function initServer() {
   app.use(bodyParser.json());
   const graphqlServer = new ApolloServer<GraphqlContext>({
     typeDefs: `
-        ${User.types}
-        ${Tweet.types}
+${User.types}
+${Tweet.types}
 
-        type Query {
-         ${User.queries}
-            ${Tweet.queries}
-
+type Query {
+${User.queries}
+${Tweet.queries}
 } 
 
-        type Mutation {
-        ${Tweet.mutations}
-        }
+type Mutation {
+${Tweet.mutations}
+${User.mutations}
+}
 
-    `,
+`,
 
     resolvers: {
       Query: {
@@ -38,6 +38,7 @@ export async function initServer() {
       },
       Mutation: {
         ...Tweet.resolvers.mutations,
+        ...User.resolvers.mutations,
       },
       ...Tweet.resolvers.extraResolvers,
       ...User.resolvers.extraResolver,
