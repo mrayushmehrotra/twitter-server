@@ -23,7 +23,9 @@ export const resolvers = {
       { id }: { id: string },
       ctx: GraphqlContext,
     ) => {
+      console.log(id, "id aa ayay");
       const user = await UserService.getUserById(id);
+      console.log(user);
       return user;
     },
   },
