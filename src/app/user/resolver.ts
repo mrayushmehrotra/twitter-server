@@ -2,6 +2,7 @@ import { prismaClient } from "../../clients/db";
 import { GraphqlContext } from "../../interfaces";
 import { User } from "@prisma/client";
 import UserService from "../../services/user";
+import { redisClient } from "../../clients/redis";
 
 export const resolvers = {
   query: {
@@ -23,9 +24,8 @@ export const resolvers = {
       { id }: { id: string },
       ctx: GraphqlContext,
     ) => {
-      console.log(id, "id aa ayay");
       const user = await UserService.getUserById(id);
-      console.log(user);
+
       return user;
     },
   },
@@ -41,7 +41,7 @@ export const resolvers = {
         const result = await prismaClient.follows.findMany({
           where: { following: { id: parent.id } },
           include: {
-            follower: true,
+            follower: { include: { following: true } },
           },
         });
         return result.map((el) => el.follower);
@@ -56,6 +56,49 @@ export const resolvers = {
         });
         return result.map((el) => el.following);
       },
+
+      recommendedUsers: async (parent: User, _: any, ctx: GraphqlContext) => {
+        if (!ctx.user) return [];
+        const cachedValue = await redisClient.get(
+          `RECOMMENDED_USER:${ctx.user.id}`,
+        );
+
+        if (cachedValue) {
+          return JSON.parse(cachedValue);
+        }
+
+        // Fetch the current user's followings
+        const myFollowings = await prismaClient.follows.findMany({
+          where: { followerId: ctx.user.id },
+          select: { followingId: true },
+        });
+
+        const followingIds = myFollowings.map((follow) => follow.followingId);
+
+        // Fetch users followed by my followings (friends of friends)
+        const potentialRecommendations = await prismaClient.follows.findMany({
+          where: {
+            followerId: { in: followingIds },
+            followingId: { notIn: [...followingIds, ctx.user.id] }, // Exclude current user and already followed
+          },
+          include: { following: true },
+        });
+
+        // Extract unique recommended users
+        const recommendedUsers = potentialRecommendations
+          .map((follow) => follow.following)
+          .filter(
+            (user, index, self) =>
+              index === self.findIndex((u) => u.id === user.id), // Ensure uniqueness
+          );
+        await redisClient.setex(
+          `RECOMMENDED_USER:${ctx.user.id}`,
+          JSON.stringify(recommendedUsers),
+          100,
+        );
+
+        return recommendedUsers;
+      },
     },
   },
   mutations: {
@@ -66,6 +109,7 @@ export const resolvers = {
     ) => {
       if (!ctx.user || !ctx.user.id) throw new Error("unauthenticated");
       await UserService.followUser(ctx.user.id, to);
+      await redisClient.del(`RECOMMENDED_USER:${ctx.user.id}`);
       return true;
     },
 
@@ -76,6 +120,7 @@ export const resolvers = {
     ) => {
       if (!ctx.user || !ctx.user.id) throw new Error("unauthenticated");
       await UserService.unfollowUser(ctx.user.id, to);
+      await redisClient.del(`RECOMMENDED_USER:${ctx.user.id}`);
       return true;
     },
   },

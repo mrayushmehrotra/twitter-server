@@ -69,7 +69,7 @@ class UserService {
   }
   public static async getUserById(id: string) {
     const user = await prismaClient.user.findUnique({ where: { id } });
-    console.log(user);
+
     return user;
   }
   public static followUser(from: string, to: string) {

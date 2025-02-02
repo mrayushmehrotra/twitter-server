@@ -10,6 +10,7 @@ type User {
     tweets: [Tweet]
     followers: [User] 
     following: [User]
+      recommendedUsers: [User!] 
 }
 
 
